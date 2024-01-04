@@ -44,6 +44,13 @@
             L.marker([26,154.0]).bindPopup('平面直角座標１９系原点').addTo(map)
 
 
+            fetch('/P29-21_10.geojson')
+                .then((res)=>res.json())
+                .then((json)=>{
+                    L.geoJSON(json)
+                        .bindPopup((layer)=>layer.feature.properties.P29_004)
+                        .addTo(map)
+                })
         </script>
     </body>
 </html>
