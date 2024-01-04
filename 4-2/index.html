@@ -8,6 +8,10 @@
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
         crossorigin=""></script>
+        <!-- leaflet.markercluster -->
+        <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster-src.js"></script>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css">
     </head>
     <body>
         <div id="map" style="height: 80vh;"></div>
@@ -50,6 +54,15 @@
                     L.geoJSON(json)
                         .bindPopup((layer)=>layer.feature.properties.P29_004)
                         .addTo(map)
+                })
+            fetch('/P29-21_01.geojson')
+                .then((res)=>res.json())
+                .then((json)=>{
+                    const markers=L.markerClusterGroup()
+                        .bindPopup((layer)=>layer.feature.properties.P29_004)
+                        .addTo(map)
+                    L.geoJSON(json)
+                        .addTo(markers)
                 })
         </script>
     </body>
