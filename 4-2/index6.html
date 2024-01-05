@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>サンプルタイトル</title>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin=""/>
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+    </head>
+    <body>
+        <div id="map" style="height: 80vh;"></div>
+        <script>
+            const map=L.map('map',{
+                center:[35.3627808,138.7307908],
+                zoom: 14
+            })
+            const backgroundLayer=L.tileLayer(
+                'https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg',{
+                    maxZoom:17,
+                    attribution:'&copy; <a href="https://maps.gsi.go.jp/developmenet/ichiran.html">地理院タイル</a>contributors'
+                }
+            )
+            map.addLayer(backgroundLayer)
+            const imageLayer=L.imageOverlay('/mtfuji.jpg',[
+                [35.2906143398424206,138.6212919295209929],
+                [35.429975181548514,138.8426007921885041]
+            ],{
+                opacity:0.7
+            })
+            map.addLayer(imageLayer)
+        </script>
+    </body>
+</html>
