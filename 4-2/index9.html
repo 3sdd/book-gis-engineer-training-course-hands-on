@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>サンプルタイトル</title>
+        <script src='https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js'></script>
+        <link href='https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css' rel='stylesheet' />
+    </head>
+    <body>
+        <div id="map" style="height: 80vh;"></div>
+        <script>
+            const map=new maplibregl.Map({
+                container:'map',
+                center:[137.1,36.5],
+                zoom:13,
+                style:{
+                    version:8,
+                    sources:{
+                        osm:{
+                            type:'raster',
+                            tiles:[
+                                'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+                            ],
+                            tileSize:256,
+                            maxzoom:18,
+                            attribution:'&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        },
+                        admin:{
+                            type:'vector',
+                            tiles:[`${location.href.replace('/index9.html','')}/admin/{z}/{x}/{y}.pbf`],
+                            maxzoom:8,
+                            attribution:'<a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-v3_1.html">国土数値情報 - 行政区域データ</a>'
+                        },
+                        school:{
+                            type:'geojson',
+                            data:'./P29-21.geojson',
+                            attribution:'<a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-P29-v2_0.html"></a>'
+                        }
+                    },
+                    layers:[
+                        {
+                            id:'background',
+                            type:'background',
+                            paint:{
+                                'background-color':'#555'
+                            }
+                        },
+                        {
+                            id:'osm-layer',
+                            source:'osm',
+                            type:'raster',
+                            // minzoom:10,
+                            paint:{
+                                'raster-opacity':[
+                                    // style expression 　　独自文法
+
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    // ズームレベル10で透過度70%
+                                    10,
+                                    0,
+                                    //  ズームレベル14の時に透過度30%
+                                    14,
+                                    0.7,// 透過度
+
+                                ]
+                            }
+                        },
+                        {
+                            id:'admin-layer',
+                            source:'admin',
+                            'source-layer':'admin',
+                            type:'fill',
+                            paint:{
+                                'fill-color':'#6a3',
+                                'fill-opacity':[
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    10,
+                                    0.7,
+                                    14,
+                                    0.3
+                                ]
+                            }
+                        },
+                        {
+                            id:'admin-outline-layer',
+                            source:'admin',
+                            'source-layer':'admin',
+                            type:'line',
+                            paint:{
+                                'line-color':'#373',
+                                'line-width':4
+                            }
+                        },
+                        {
+                            id:'school-heatmap-layer',
+                            source:'school',
+                            type:'heatmap',
+                            maxzoom:12,
+                            paint:{
+                                'heatmap-weight':0.01,
+                                'heatmap-opacity':0.7,
+                                'heatmap-color': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['heatmap-density'],
+                                    // 0のとき
+                                    0,
+                                    'rgba(0,0,0,0)',
+                                    // 重み0.5の時
+                                    0.5,
+                                    'rgba(255,200,0,1)',
+                                    // 重みが1の時
+                                    1.0,
+                                    'rgba(255,240,200,1)'
+                                ]
+                            }
+                        },
+                        {
+                            id:'school-circle-layer',
+                            source:'school',
+                            type:'circle',
+                            minzoom:8,
+                            paint:{
+                                'circle-color':[
+                                    'interpolate',
+                                    ['linear'],
+                                    ['get','P29_003'],
+                                    16001,'#f00',
+                                    16002,'#0f0',
+                                    16003,'#0f0',
+                                    16004,'#00f',
+                                    16005,'orange'
+                                ],
+                                'circle-opacity':[
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    8,
+                                    0,
+                                    9,
+                                    0.1,
+                                    14,
+                                    1
+
+                                ]
+                            }
+                        }
+                    ]
+                }
+            })
+        </script>
+    </body>
+</html>
