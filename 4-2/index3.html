@@ -49,6 +49,52 @@
 
             const layersControl=L.control.layers(baseLayers,[],{collapsed:false})
                 .addTo(map)
+
+                fetch("./A16-15_00_DID.geojson")
+                .then((res)=>res.json())
+                .then((json)=>{
+                    const polygon=L.geoJSON(json,{
+                        style:(feature)=>({
+                            color:'red',
+                            stroke:false,
+                            fillOpacity:feature.properties['人口']/feature.properties['面積']/20000
+                        })
+                    })
+                    .bindPopup((layer)=>'人口:'+layer.feature.properties['人口'])
+                    .addTo(map)
+                    layersControl.addOverlay(polygon,'人口')
+                })
+
+                const colorDict={
+                    1:'green',
+                    2:'blue',
+                    3:'red',
+                    4:'orange',
+                    5:'purple'
+                }
+
+                const weightDict={
+                    1:10,
+                    2:7,
+                    3:4,
+                    4:4,
+                    5:4
+                }
+
+                fetch('./N02-21_RailroadSection.geojson')
+                    .then((res)=>res.json())
+                    .then((json)=>{
+                        const line=L.geoJSON(json,{
+                            style:(feature)=>({
+                                weight:weightDict[feature.properties.N02_002],
+                                color:colorDict[feature.properties.N02_002]
+                            })
+                        })
+                        .bindPopup((layer)=>layer.feature.properties.N02_004 + '<br/>'+layer.feature.properties.N02_003)
+                        .addTo(map)
+
+                        layersControl.addOverlay(line,'鉄道データ')
+                    })
         </script>
     </body>
 </html>
