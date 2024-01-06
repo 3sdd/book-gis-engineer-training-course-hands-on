@@ -2,6 +2,7 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import OpacityControl from "maplibre-gl-opacity";
 import "maplibre-gl-opacity/dist/maplibre-gl-opacity.css";
+import distance from "@turf/distance";
 
 const map = new maplibregl.Map({
   container: "map",
@@ -98,6 +99,14 @@ const map = new maplibregl.Map({
         maxzoom: 8,
         attribution:
           '<a href="https://www.gsi.go.jp/bousaichiri/hinanbasho.html" target="_blank">国土地理院:指定緊急避難場所データ</a>',
+      },
+      // 現在地と最寄りの避難施設をつなぐ線
+      route: {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: [],
+        },
       },
     },
     layers: [
@@ -282,10 +291,66 @@ const map = new maplibregl.Map({
           visibility: "none",
         },
       },
+      {
+        id: "route-layer",
+        source: "route",
+        type: "line",
+        paint: {
+          "line-color": "#33aaff",
+          "line-width": 4,
+        },
+      },
     ],
   },
 });
 
+let userLocation = null;
+const geolocationControl = new maplibregl.GeolocateControl({
+  trackUserLocation: true,
+});
+
+map.addControl(geolocationControl, "bottom-right");
+geolocationControl.on("geolocate", (e) => {
+  userLocation = [e.coords.longitude, e.coords.latitude];
+});
+
+const getCurrentSkhbLayerFilter = () => {
+  const style = map.getStyle();
+  const skhbLayers = style.layers.filter((layer) =>
+    layer.id.startsWith("skhb")
+  );
+  const visibleSkhbLayers = skhbLayers.filter(
+    (layer) => layer.layout.visibility === "visible"
+  );
+  return visibleSkhbLayers[0].filter;
+};
+
+const getNearestFeature = (longitude, latitude) => {
+  const currentSkhbLayerFilter = getCurrentSkhbLayerFilter();
+  const features = map.querySourceFeatures("skhb", {
+    sourceLayer: "skhb",
+    filter: currentSkhbLayerFilter,
+  });
+
+  const nearestFeature = features.reduce((minDistanceFeature, feature) => {
+    const dist = distance([longitude, latitude], feature.geometry.coordinates);
+    if (
+      minDistanceFeature === null ||
+      minDistanceFeature.properties.dist > dist
+    ) {
+      return {
+        ...feature,
+        properties: {
+          ...feature.properties,
+          dist,
+        },
+      };
+    }
+    return minDistanceFeature;
+  }, null);
+
+  return nearestFeature;
+};
 map.on("load", () => {
   const opacity = new OpacityControl({
     baseLayers: {
@@ -386,6 +451,35 @@ map.on("load", () => {
       } else {
         map.getCanvas().style.cursor = "";
       }
+    });
+  });
+
+  map.on("render", () => {
+    // geocontrolがoffの時
+    if (geolocationControl._watchState === "OFF") userLocation = null;
+
+    if (map.getZoom() < 7 || userLocation === null) {
+      // ラインを消去
+      map.getSource("route").setData({
+        type: "FeatureCollection",
+        features: [],
+      });
+      return;
+    }
+
+    const nearestFeature = getNearestFeature(userLocation[0], userLocation[1]);
+
+    const routeFeature = {
+      type: "Feature",
+      geometry: {
+        type: "LineString",
+        coordinates: [userLocation, nearestFeature._geometry.coordinates],
+      },
+    };
+
+    map.getSource("route").setData({
+      type: "FeatureCollection",
+      features: [routeFeature],
     });
   });
 });
