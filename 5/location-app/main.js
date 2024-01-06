@@ -312,4 +312,80 @@ map.on("load", () => {
     },
   });
   map.addControl(opacitySkhb, "top-right");
+
+  map.on("click", (e) => {
+    const features = map.queryRenderedFeatures(e.point, {
+      layers: [
+        "skhb-1-layer",
+        "skhb-2-layer",
+        "skhb-3-layer",
+        "skhb-4-layer",
+        "skhb-5-layer",
+        "skhb-6-layer",
+        "skhb-7-layer",
+        "skhb-8-layer",
+      ],
+    });
+
+    if (features.length === 0) return;
+
+    const feature = features[0];
+    const popup = new maplibregl.Popup()
+      .setLngLat(feature.geometry.coordinates) // lng,lat
+      .setHTML(
+        `
+          <div style="font-weight:900;font-size:1rem;">
+          ${feature.properties["施設・場所名"]}
+          </div>
+          <div>${feature.properties["住所"]}</div>
+          <div>${feature.properties["備考"] ?? ""}</div>
+          <span ${
+            feature.properties["洪水"] ? "" : 'style="color:#ccc;"'
+          }>洪水</span>
+          <span ${
+            feature.properties["崖崩れ、土石流及び地滑り"]
+              ? ""
+              : 'style="color:#ccc;"'
+          }>崖崩れ、土石流及び地滑り</span>
+
+          <span ${
+            feature.properties["高潮"] ? "" : 'style="color:#ccc;"'
+          }>高潮</span>
+          <span ${
+            feature.properties["地震"] ? "" : 'style="color:#ccc;"'
+          }>地震</span>          <span ${
+          feature.properties["津波"] ? "" : 'style="color:#ccc;"'
+        }>津波</span>          <span ${
+          feature.properties["大規模な火事"] ? "" : 'style="color:#ccc;"'
+        }>大規模な火事</span>          <span ${
+          feature.properties["内水氾濫"] ? "" : 'style="color:#ccc;"'
+        }>内水氾濫</span>          <span ${
+          feature.properties["火山現象"] ? "" : 'style="color:#ccc;"'
+        }>火山現象</span>
+        
+        `
+      )
+      .addTo(map);
+
+    map.on("mousemove", (e) => {
+      const features = map.queryRenderedFeatures(e.point, {
+        layers: [
+          "skhb-1-layer",
+          "skhb-2-layer",
+          "skhb-3-layer",
+          "skhb-4-layer",
+          "skhb-5-layer",
+          "skhb-6-layer",
+          "skhb-7-layer",
+          "skhb-8-layer",
+        ],
+      });
+      // カーソルの形状を変更
+      if (features.length > 0) {
+        map.getCanvas().style.cursor = "pointer";
+      } else {
+        map.getCanvas().style.cursor = "";
+      }
+    });
+  });
 });
