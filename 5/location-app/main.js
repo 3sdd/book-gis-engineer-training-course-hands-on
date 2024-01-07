@@ -3,6 +3,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import OpacityControl from "maplibre-gl-opacity";
 import "maplibre-gl-opacity/dist/maplibre-gl-opacity.css";
 import distance from "@turf/distance";
+import { useGsiTerrainSource } from "maplibre-gl-gsi-terrain";
 
 const map = new maplibregl.Map({
   container: "map",
@@ -482,4 +483,36 @@ map.on("load", () => {
       features: [routeFeature],
     });
   });
+
+  // 地形データ生成
+  const gsiTerrainSource = useGsiTerrainSource(maplibregl.addProtocol);
+  // 地形データ追加  type = raster-dem
+  map.addSource("terrain", gsiTerrainSource);
+  map.addLayer(
+    {
+      id: "hillshade",
+      source: "terrain",
+      type: "hillshade",
+      paint: {
+        "hillshade-illumination-anchor": "map",
+        "hillshade-exaggeration": 0.2,
+      },
+    },
+    "hazard_jisuberi-layer"
+  );
+  map.addControl(
+    new maplibregl.TerrainControl({
+      source: "terrain",
+      exaggeration: 1, // 標高を強調する倍率
+    })
+  );
+
+  // maptiler社の配信しているTerrainRGBタイルの例
+  // map.addSource("terrain", {
+  //   type: "raster-dem",
+  //   tiles: [
+  //     "https://api/maptiler.com/tiles/terrain-rgb-v2/{z}/{x}/{y}.webp?key=[APIkey]",
+  //   ],
+  //   maxzoom: 12,
+  // });
 });
